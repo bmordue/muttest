@@ -114,6 +114,7 @@ reference:
       - numeric_boundaries
       - numeric_type_swaps
       - sequence_mutations
+      - all_mutators
   - title: Reporters
     desc: Control how results are displayed.
     contents:
