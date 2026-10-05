@@ -25,6 +25,29 @@ test_that("timeout on infinite loop is recorded as error", {
   })
 })
 
+test_that("timeout does not count time spent queued behind other mutants", {
+  skip_on_cran()
+  slow_strategy <- R6::R6Class(
+    inherit = TestStrategy,
+    public = list(
+      execute = function(path, plan, reporter) {
+        Sys.sleep(1)
+        structure(list(), class = "testthat_results")
+      }
+    )
+  )$new()
+
+  .with_example_dir("operators/", {
+    p <- muttest_plan(list(operator("+", "-")), fs::dir_ls("R"))
+    p <- p[rep(1, 4), ]
+    reporter <- MutationReporter$new()
+    capture.output(suppressMessages(suppressWarnings(
+      muttest(p, reporter = reporter, test_strategy = slow_strategy, timeout = 2500)
+    )), type = "output")
+    expect_length(reporter$error_messages, 0)
+  })
+})
+
 test_that("test runner errors are recorded as errors, not propagated", {
   error_strategy <- R6::R6Class(
     inherit = TestStrategy,
